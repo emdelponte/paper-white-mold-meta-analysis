@@ -94,7 +94,7 @@ hist(dat_yld$scl, main = "Sclerotia weight")
 
 Now we want to visualize the two relationships of interest for each study. We add the line of the regression of linear model fitted to the data.
 
-```{r, fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
+```{r, fig.height=7, fig.width=10, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(ggthemes)
 ggplot(dat_yld, aes(inc, yld))+
