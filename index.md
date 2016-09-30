@@ -7,14 +7,15 @@ body
 margin:0px;
 padding:0px;
 width:100%;
-font-size: 1.7em;
+font-size: 1.8em;
 line-height: 150%
 }
 
-h1, h2,h3,h4
+h1,h2,h3,h4
 {
 margin-bottom: 30px;
-margin-top: 40px
+margin-top: 40px;
+border-bottom: 1px
 }
 
 </style>
