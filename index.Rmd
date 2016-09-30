@@ -1,17 +1,17 @@
 ---
-title: "Meta-analysis of relationships in soybean white mould"
+title: "Meta-analysis of relationships in soybean white mold"
 author: ''
 date: 'Last update: 9/29/2016'
 output:
+   
   html_document:
     collapsed: yes
     keep_md: yes
+    number_sections: no
     theme: flatly
     toc: yes
+    toc_depth: 4
     toc_float: yes
-    toc_depth: 3
-  pdf_document:
-    toc: no
 ---
 <style>
 body 
@@ -19,14 +19,14 @@ body
 margin:0px;
 padding:0px;
 width:100%;
-font-size: 1.8em;
+font-size: 1.7em;
 line-height: 150%
 }
 
-h1, h2
+h1, h2,h3,h4
 {
 margin-bottom: 30px;
-marting-top: 40px
+margin-top: 40px
 }
 
 </style>
@@ -149,7 +149,7 @@ library(metafor)
 dat_yld3 <- escalc(measure = "ZCOR", ri = estimate, ni = n, data = dat_yld3)
 ```
 
-### Overall effect
+#### Overall effect
 
 Now we fit a random-coefficients model to estimate overal Fisher's Z using a maximum likelihood estimation method. Note that the effec-size and sampling variance are denoted by `yi` and `vi` (the standard notations used in `metafor`).
 
@@ -166,7 +166,7 @@ pred_r
 ```
 
 
-### Effect of moderators
+#### Effect of moderators
 
 
 ```{r}
@@ -210,7 +210,7 @@ Table. Q-test and significant of the effect of moderators
 | Yield categorical | `r ma_cor_yld_yld2$QEp` | `r ma_cor_yld_inc2$QMp`|
 
 
-### Forrest plot of Pearson's r
+#### Forrest plot of Pearson's r
 
 ```{r}
 

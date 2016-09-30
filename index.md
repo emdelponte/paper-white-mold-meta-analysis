@@ -1,4 +1,4 @@
-# Meta-analysis of relationships in soybean white mould
+# Meta-analysis of relationships in soybean white mold
   
 Last update: 9/29/2016  
 <style>
@@ -7,14 +7,14 @@ body
 margin:0px;
 padding:0px;
 width:100%;
-font-size: 1.8em;
+font-size: 1.7em;
 line-height: 150%
 }
 
-h1, h2
+h1, h2,h3,h4
 {
 margin-bottom: 30px;
-marting-top: 40px
+margin-top: 40px
 }
 
 </style>
@@ -99,7 +99,7 @@ hist(dat_yld$yld, main =  "Yield")
 hist(dat_yld$scl, main = "Sclerotia weight")
 ```
 
-![](README_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
+![](index_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 Now we want to visualize the two relationships of interest for each study. We add the line of the regression of linear model fitted to the data.
 
@@ -116,7 +116,7 @@ ggplot(dat_yld, aes(inc, yld))+
        facet_wrap(~ study, ncol = 7, scales = "fixed") 
 ```
 
-![](README_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
+![](index_files/figure-html/unnamed-chunk-6-1.png)<!-- -->
 
 ```r
 ggplot(dat_yld, aes(inc, scl))+
@@ -128,7 +128,7 @@ ggplot(dat_yld, aes(inc, scl))+
        facet_wrap(~ study, ncol = 7, scales = "fixed") 
 ```
 
-![](README_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
+![](index_files/figure-html/unnamed-chunk-6-2.png)<!-- -->
 
 
 # Meta-analytic models 
@@ -166,7 +166,7 @@ library(metafor)
 dat_yld3 <- escalc(measure = "ZCOR", ri = estimate, ni = n, data = dat_yld3)
 ```
 
-### Overall effect
+#### Overall effect
 
 Now we fit a random-coefficients model to estimate overal Fisher's Z using a maximum likelihood estimation method. Note that the effec-size and sampling variance are denoted by `yi` and `vi` (the standard notations used in `metafor`).
 
@@ -214,7 +214,7 @@ pred_r
 ```
 
 
-### Effect of moderators
+#### Effect of moderators
 
 
 
@@ -257,7 +257,7 @@ Table. Q-test and significant of the effect of moderators
 | Yield categorical | 0.0020952 | 0.7088088|
 
 
-### Forrest plot of Pearson's r
+#### Forrest plot of Pearson's r
 
 
 ```r
@@ -276,7 +276,7 @@ dat_yld3 %>%
         y = "Estimated r", x = "Study number (reordered)")
 ```
 
-![](README_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
+![](index_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 
 ## Inc-scl relationship
@@ -422,5 +422,5 @@ dat_scl3 %>%
         y = "Estimated r", x = "Study number (reordered)")
 ```
 
-![](README_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+![](index_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
 
