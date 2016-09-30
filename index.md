@@ -87,7 +87,7 @@ dat_yld
 ```
 
 
-# Data visualizaton
+# Data visualization
 
 Let's have a look at the distribution of the three variables of interest, which will be used to obtain the effect-sizes for the meta-analysis.
 
