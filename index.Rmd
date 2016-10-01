@@ -35,10 +35,6 @@ In that study, two relationships were studied: soybean white mold incidence (inc
 
 The two relationships were summarized using [meta-analytic approaches](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069). The three effect-sizes used in this study were: 1) Fisher's Z (from Pearson's r); 2) intercept and 3) slopes of regression model (a random-coefficients models) fitted to the data of 35 and 29 studies the inc-yld and inc-scl relationships, respectively. The analysis was similar to that conducted in two plant pathology studies, but in this work we used the mixed, also know as random-coeficients model as described in Madden and Paul (2009). However, the analysis were conducted in `R` using `lmer` package as described in this tutorial that compares the [two-stage model and mixed model using R](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). In our preliminary analysis (not shown here), the two approaches produced similar results.
 
-> `r cr_cn(dois = "10.1094/PHYTO-06-14-0157-R", format = "text", style = "apa")`
-
-> `r cr_cn(dois = "10.1094/PHYTO-99-7-0850", format = "text", style = "apa")`
-
 Follow the steps and comments below for reproducing the analysis. The data and code of this document are available for download on [GitHub repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). Make sure to install and load the R packages necessary for conducting the analysis. The plots used in this report were made using both the base R graphics and ggplot2. Most of the plots are simple versions quick visualization, not actually formatted for final publishing.
 
 ```{r, message=FALSE, warning=FALSE}
@@ -73,15 +69,14 @@ hist(dat_yld$scl, main = "Sclerotia weight")
 
 ```
 
-Visualize the two relationships of interest, conditioned to study with the regression line added to the plot of each study. Note that soybean yield decreases with the increase of white mold incidence. The variable incidence levels in a single study were due to differences in fungicide efficacy.
+Visualize the two relationships of interest, conditioned to study with the regression line added to the plot of each study. Note that soybean yield decreases with the increase of white mold incidence. The variable incidence (and yield) in a single study were due to differences in fungicide efficacy.
 
 ```{r, fig.height=7, fig.width=10, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(ggthemes)
 ggplot(dat_yld, aes(inc, yld))+
        geom_point(shape = 1)+
-       stat_smooth(method = lm, fullrange=TRUE, 
-                   se = F, col = "black")+
+       stat_smooth(method = lm, fullrange=TRUE, se = F, col = "black")+
        ylab("Yield (kg/ha)")+
        xlab("White mold incidence (%)")+
        theme_minimal()+
@@ -90,8 +85,7 @@ ggplot(dat_yld, aes(inc, yld))+
 
 ggplot(dat_yld, aes(inc, scl))+
        geom_point(shape = 1)+
-       stat_smooth(method = lm, fullrange=TRUE,
-                   se = F, col = "black")+
+       stat_smooth(method = lm, fullrange=TRUE, se = F, col = "black")+
        ylab("Sclerotia weight(g)")+
        xlab("White mold incidence (%)")+
        theme_minimal()+
@@ -122,7 +116,7 @@ dat_yld3 <- full_join(cor_yld_inc, dat_yld2, by = "study") %>%
            mutate(n = parameter + 2)  
 ```
 
-The Fisher's Z (yi) is used as the effect size due to its better statistical property than the Pearson's. Obtain Z (yi) and sampling variance (vi) of the study with the `escalc` function of the `metafor` package and add to the dataframe.
+The Fisher's Z (yi) was used as the effect size due to its better statistical property than the Pearson's. Obtain Z (yi) and sampling variance (vi) of the study with the `escalc` function of the `metafor` package and add to the dataframe.
 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -156,25 +150,32 @@ A mixed-effect model was fitted to the data by the inclusion of moderator variab
 ma_cor_yld_year <- rma(yi, vi, sei="",  mods = ~season, method = "ML",   data = dat_yld3)
 
 ## region
-ma_cor_yld_region <- rma(yi, vi, mods = ~region, method = "ML",data = dat_yld3)
+ma_cor_yld_region <- rma(yi, vi, mods = ~region, 
+                         method = "ML",data = dat_yld3)
 
 ## elevation as continuous
-ma_cor_yld_elevation <- rma(yi, vi, mods = ~elevation, method = "ML", data = dat_yld3)
+ma_cor_yld_elevation <- rma(yi, vi, mods = ~elevation, 
+                            method = "ML", data = dat_yld3)
 
 ## elevation as category
-ma_cor_yld_elevation2 <- rma(yi, vi, mods = ~elevation_class, method = "ML", data = dat_yld3)
+ma_cor_yld_elevation2 <- rma(yi, vi, mods = ~elevation_class, 
+                             method = "ML", data = dat_yld3)
 
 ## incidence in the check as continuous
-ma_cor_yld_inc <- rma(yi, vi, mods = ~inc_check, method = "ML", data = dat_yld3)
+ma_cor_yld_inc <- rma(yi, vi, mods = ~inc_check, 
+                      method = "ML", data = dat_yld3)
 
 ## incidence in the check as categorical
-ma_cor_yld_inc2 <- rma(yi, vi, mods = ~inc_class, method = "ML", data = dat_yld3)
+ma_cor_yld_inc2 <- rma(yi, vi, mods = ~inc_class, 
+                       method = "ML", data = dat_yld3)
 
 ## yield in the check as continuous
-ma_cor_yld_yld <- rma(yi, vi, mods = ~yld_check, method = "ML", data = dat_yld3)
+ma_cor_yld_yld <- rma(yi, vi, mods = ~yld_check, 
+                      method = "ML", data = dat_yld3)
 
 ## yield in the check as categorical
-ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_yld3)
+ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, 
+                       method = "ML", data = dat_yld3)
 
 
 ```
@@ -269,28 +270,36 @@ Same as previously described.
 
 ```{r}
 # season
-ma_cor_scl_year <- rma(yi, vi, mods = ~season, method = "ML",   data = dat_scl3)
+ma_cor_scl_year <- rma(yi, vi, mods = ~season, 
+                       method = "ML",   data = dat_scl3)
 
 ## region
-ma_cor_scl_region <- rma(yi, vi, mods = ~region, method = "ML",data = dat_scl3)
+ma_cor_scl_region <- rma(yi, vi, mods = ~region, 
+                         method = "ML",data = dat_scl3)
 
 ## elevation as continuous
-ma_cor_scl_elevation <- rma(yi, vi, mods = ~elevation, method = "ML", data = dat_scl3)
+ma_cor_scl_elevation <- rma(yi, vi, mods = ~elevation, 
+                            method = "ML", data = dat_scl3)
 
 ## elevation as category
-ma_cor_scl_elevation2 <- rma(yi, vi, mods = ~elevation_class, method = "ML", data = dat_scl3)
+ma_cor_scl_elevation2 <- rma(yi, vi, mods = ~elevation_class, 
+                             method = "ML", data = dat_scl3)
 
 ## incidence in the check as continuous
-ma_cor_scl_inc <- rma(yi, vi, mods = ~inc_check, method = "ML", data = dat_scl3)
+ma_cor_scl_inc <- rma(yi, vi, mods = ~inc_check, 
+                      method = "ML", data = dat_scl3)
 
 ## incidence in the check as categorical
-ma_cor_scl_inc2 <- rma(yi, vi, mods = ~inc_class, method = "ML", data = dat_scl3)
+ma_cor_scl_inc2 <- rma(yi, vi, mods = ~inc_class, 
+                       method = "ML", data = dat_scl3)
 
 ## yield in the check as continuous
-ma_cor_scl_yld <- rma(yi, vi, mods = ~yld_check, method = "ML", data = dat_scl3)
+ma_cor_scl_yld <- rma(yi, vi, mods = ~yld_check, 
+                      method = "ML", data = dat_scl3)
 
 ## yield in the check as categorical
-ma_cor_scl_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_scl3)
+ma_cor_scl_yld2 <- rma(yi, vi, mods = ~yld_class, 
+                       method = "ML", data = dat_scl3)
 
 
 ```
@@ -328,4 +337,10 @@ dat_scl3 %>%
        title = "White mold incidence vs. sclerotia weight", 
         y = "Estimated r", x = "Study number (reordered)")
 ```
+
+# References
+
+`r cr_cn(dois = "10.1094/PHYTO-06-14-0157-R", format = "text", style = "apa")`
+
+`r cr_cn(dois = "10.1094/PHYTO-99-7-0850", format = "text", style = "apa")`
 
