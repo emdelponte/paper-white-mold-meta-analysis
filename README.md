@@ -1,11 +1,9 @@
 # paper-white-mold-meta-analysis
 
-This repository contains all data and R codes for reproducing the meta-analysis conducted in one of our articles published in Plant Pathology:
+This repository contains all data and R codes for reproducing the meta-analysis conducted in this article: 
 
-Lehner, M. S., Pethybridge, S. J., Meyer, M. C., & Del Ponte, E. M. (2016). Meta-analytic modelling of the incidence-yield and incidence-sclerotial production relationships in soybean white mould epidemics. Plant Pathol. doi:10.1111/ppa.12590
+> Lehner, M. S., Pethybridge, S. J., Meyer, M. C., & Del Ponte, E. M. (2016). Meta-analytic modelling of the incidence-yield and incidence-sclerotial production relationships in soybean white mould epidemics. Plant Pathol. doi:10.1111/ppa.12590
 
-In the paper, we studied the relationships between soybean white mold incidence (inc) and soybean yield (yld) and inc and sclerotia weight (scl) assessed in 35 uniform field trials across several locations and four years in Brazil. The original data was obtained from individual tables for each trial published in a scientific report. 
+In the paper, the relationships between soybean white mold incidence (inc) and soybean yield (yld) and inc and sclerotia weight (scl) was studied in 35 uniform field trials across several locations and four years in Brazil. The original data was obtained from individual tables for each trial published in a scientific report. These relationships were summarized using meta-analytic modeling approaches. The effect-sizes summarized were the Pearson's correlation coefficient and the intercept and slopes of a mixed, random-coefficients, model fitted to the data of 35 and 29 studies for the inc-yld and inc-scl relationships, respectively. 
 
-These relationships were summarized using meta-analytical approaches. The effect-sizes which were summarized were the Pearson's correlation coefficient and the intercept and slopes of random coefficients model fitted to the data of 35 and 29 studies for the inc-yld and inc-scl relationships, respectively. 
-
-The commented code for reproducing the analysis conducted in the paper can be found in this webpage [https://emdelponte.github.io/paper-white-mold-meta-analysis/](https://emdelponte.github.io/paper-white-mold-meta-analysis/). Be sure to install and load packages necessary for conducting the analysis. The plots used in this report were made using the base R graphics and ggplot2. Most of the plots are simple versions quick visualization, not actually formatted for final publishing.
+The commented code and data for reproducing the analysis can be found in this webpage [https://emdelponte.github.io/paper-white-mold-meta-analysis/](https://emdelponte.github.io/paper-white-mold-meta-analysis/). 
