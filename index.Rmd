@@ -80,7 +80,8 @@ library(ggplot2)
 library(ggthemes)
 ggplot(dat_yld, aes(inc, yld))+
        geom_point(shape = 1)+
-       stat_smooth(method = lm, se = F, col = "black")+
+       stat_smooth(method = lm, fullrange=TRUE, 
+                   se = F, col = "black")+
        ylab("Yield (kg/ha)")+
        xlab("White mold incidence (%)")+
        theme_minimal()+
@@ -89,7 +90,8 @@ ggplot(dat_yld, aes(inc, yld))+
 
 ggplot(dat_yld, aes(inc, scl))+
        geom_point(shape = 1)+
-       stat_smooth(method = lm, se = F, col = "black")+
+       stat_smooth(method = lm, fullrange=TRUE,
+                   se = F, col = "black")+
        ylab("Sclerotia weight(g)")+
        xlab("White mold incidence (%)")+
        theme_minimal()+
