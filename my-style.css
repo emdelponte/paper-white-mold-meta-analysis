@@ -1,28 +1,46 @@
-body 
-{
+body {
 margin:0px;
 padding:0px;
 width:100%;
 font-size: 1.8em;
-line-height: 150%
+line-height: 170%
 }
-h1,h2,h3,h4
-{
+
+img {
+ margin-top: 40px;
+ margin-bottom: 40px
+}
+
+h1,h2,h3,h4 {
 margin-bottom: 30px;
-margin-top: 40px;
-border-bottom: 1px
+margin-top: 20px;
+padding-top: 5px;
+font-family: 'Oswald', sans-serif;
+display: inline-block;
+width:100%
+}
+}
+h1.title {
+font-family: 'Oswald', sans-serif;
+font-size: 32px;
+line-height: 120%
 }
 
-pre 
-{
-font-size: 0.8em;
-margin-top: 30px;
-margin-bottom: 30px
+pre code, pre, code {
+ margin-top: 30px;
+ margin-bottom: 20px;
+ font-size: 0.9em;
+  white-space: pre !important;
+  overflow-x: scroll !important;
+  word-break: keep-all !important;
+  word-wrap: initial !important
 }
 
-blockquote 
-{
+
+blockquote {
+margin-top: 20px;
+margin-bottom: 30px;
 font-size: 0.9em;
-line-height:120%;
+line-height:130%;
 background-color: #f2f2f2;
 }

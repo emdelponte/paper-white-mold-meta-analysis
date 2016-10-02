@@ -1,28 +1,31 @@
 
 ---
-title: "Reproducible report - meta-analysis of relationships in soybean white mold"
+title: "Reproducible report: <br />  Meta-analysis of soybean white mold epidemic data <br /> doi:10.1111/ppa.12590"
 output:
   html_document:
     css: my-style.css
     theme: flatly
-    toc: yes
-    toc_depth: 4
-    toc_float: yes
-  word_document:
-    toc: yes
-    toc_depth: '4'
+    toc: true
+    depth: 4
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
 ---
+
+<link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
+
 
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+options(width=200)
 ```
 
 
 # Introduction
 
-This report describes all steps for reproducing the meta-analysis conducted in an article published in Plant Pathology. 
+This report describes all the steps for reproducing the analysis conducted in the following article:
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 library(rcrossref)
@@ -31,27 +34,37 @@ citation <- cr_cn(dois = "10.1111/ppa.12590", format = "text", style = "apa")
 
 > `r citation`
 
-In that study, two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and inc and sclerotia weight (scl, kg). These relationships were summarized using data from 35 uniform fungicide trials conducted at several locations and four years in Brazil. The original data was extracted from tables, one for each trial, publicly available in a scientific report. [Download the report - PT language](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf)
 
-The two relationships were summarized using [meta-analytic approaches](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069). The three effect-sizes used in this study were: 1) Fisher's Z (from Pearson's r); 2) intercept and 3) slopes of regression model (a random-coefficients models) fitted to the data of 35 and 29 studies the inc-yld and inc-scl relationships, respectively. The analysis was similar to that conducted in two plant pathology studies, but in this work we used the mixed, also know as random-coeficients model as described in Madden and Paul (2009). However, the analysis were conducted in `R` using `lmer` package as described in this tutorial that compares the [two-stage model and mixed model using R](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). In our preliminary analysis (not shown here), the two approaches produced similar results.
+<img style="float: right; margin:30px" src="report-white-mold.jpg">
+In the article, two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). These relationships were summarized using data from 35 uniform fungicide trials conducted across several locations and four years in the main Brazilian soybean areas. The original data was extracted from tables, one for each trial, publicly available in a scientific summary report. [Download the report in Portuguese language](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf)
 
-Follow the steps and comments below for reproducing the analysis. The data and code of this document are available for download on [GitHub repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). Make sure to install and load the R packages necessary for conducting the analysis. The plots used in this report were made using both the base R graphics and ggplot2. Most of the plots are simple versions quick visualization, not actually formatted for final publishing.
+The two relationships were summarized using [meta-analytic approaches](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069). The three effect-sizes used in this study were: 1) Fisher's Z (from Pearson's r); 2) intercept and 3) slopes of regression model (a random-coefficients models) fitted to the data of 35 and 29 studies the inc-yld and inc-scl relationships, respectively. The analysis followed the procedures used in previous studies in plant pathology. However, for summarizing slopes and intercepts, we used a mixed, also know as random-coeficients, model as described in Madden and Paul (2009) using SAS. Here, we conducted the analysis in `R` with the `lmer` package as described in this tutorial [two-stage model and mixed model using R](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). In our preliminary analysis (not shown here), the two-stage and random-coefficients approaches produced very similar results.
+
+# About this report
+
+- The data and code of this document are available for download at this [GitHub repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). 
+
+- Make sure to install and load the R packages necessary for the analysis. As much as possible I use the pipe operator `%>%`  of the [`magrittr` package](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html), which transform nested function calls into a simple pipeline of operations that's easier to write and understand. 
+
+- The plots used in this report were made using both the base R graphics and ggplot2. Most of them are simple versions quick visualization, not actually formatted for final publishing.
+
 
 ```{r, message=FALSE, warning=FALSE}
-library(tidyverse); library(broom); library(tidyr); library(cowplot)
+library(tidyverse); library(broom); library(tidyr); library(cowplot); library(tibble); library(knitr)
+
 ```
 
 
 # Data import 
 
-The data was organized in the long format where each row represents a single treatment in a fungicide trial (hereafter study). The data is loaded in a tidy format and was grouped by study. 
+The data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Load the tidy data and group by study. 
 
 ```{r, message=FALSE, warning=FALSE}
 dat_yld <- read_csv("dat-white-mold-br.csv") %>% 
   group_by(study)
 ```
 
-See the structure of the dataset and the first variables of a total of `r ncol(dat_yld)` variables of categorical and numeric formats. The original dataset in csv format can be downloaded here: [dat-white-mold-br.csv](dat-white-mold-br.csv) 
+See the structure of the dataset and all variables types (scroll the content to the left). The full dataset in `csv` format can be downloaded here: [dat-white-mold-br.csv](dat-white-mold-br.csv) 
 
 ```{r}
 dat_yld
@@ -59,9 +72,9 @@ dat_yld
 
 # Data visualization
 
-Construct histograms for distribution of the three variables that will be used to obtain the effect-sizes for the meta-analysis.
+Histograms are a good way to visualize the distribution of the three variables that will be used to calculate the three effect-sizes for the meta-analysis. We can see that the disease-related variables (inc and scl) are skewed to the left, while yield data are more normally distributed.
 
-```{r, fig.height= 3, message=FALSE, warning=FALSE}
+```{r, fig.height=3, fig.width=12, message=FALSE, warning=FALSE}
 par(mfrow= c(1,3))
 hist(dat_yld$inc, main = "Incidence")
 hist(dat_yld$yld, main =  "Yield")
@@ -69,7 +82,9 @@ hist(dat_yld$scl, main = "Sclerotia weight")
 
 ```
 
-Visualize the two relationships of interest, conditioned to study with the regression line added to the plot of each study. Note that soybean yield decreases with the increase of white mold incidence. The variable incidence (and yield) in a single study were due to differences in fungicide efficacy.
+Let's now visualize the two relationships of interest, conditioned to study, and add a regression line (extended to the full range) for each study with variable number of observation (pairs). 
+
+Note that soybean yield decreases with the increase of white mold incidence and sclerotia weight increase, with the increase of disease incidence. The variability in the incidence in a single study was due to differences in fungicide efficacy.
 
 ```{r, fig.height=7, fig.width=10, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -98,9 +113,11 @@ ggplot(dat_yld, aes(inc, scl))+
 
 ## Incidence-yield 
 
+The procedures described in details below are the same for the two studied relationships. The two main meta-analyses summarize the Fisher's Z used as the effect size for the study of the strenght of the association between white mold incidence and soybean yield, and the regression coefficients estimated by a random-coefficients modelling framework to determine functional relationship between the two variables.
+
 ### Correlation coefficient
 
-Use the `dplyr::do` and `tidyr::broom` functions to extract the correlation statistics from each study.
+Here I use the `dplyr::do` and `tidyr::broom` functions to extract the correlation statistics from each of the studies and assign them to the `cor_yld_inc` dataframe.
 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -108,7 +125,7 @@ cor_yld_inc <- dat_yld %>%
   do(tidy(cor.test(.$inc, .$yld)))
 ```
 
-Extract the first row of each study and then combine with the `cor_yld_inc` dataframe that contains the correlation statistics. Add another column (n) form the number of data points per study.
+Let's extract the first row of each study from the `dat_yld` dataframe and then combine with the new `cor_yld_inc` dataframe that contains the correlation statistics. Also dd a new column (n) for the number of data points per study using the `mutate` function.
 
 ```{r}
 dat_yld2 <- filter(dat_yld, row_number() == 1)
@@ -116,8 +133,8 @@ dat_yld3 <- full_join(cor_yld_inc, dat_yld2, by = "study") %>%
            mutate(n = parameter + 2)  
 ```
 
-The Fisher's Z (yi) was used as the effect size due to its better statistical property than the Pearson's. Obtain Z (yi) and sampling variance (vi) of the study with the `escalc` function of the `metafor` package and add to the dataframe.
-
+The Fisher's Z was used as effect-size because of its better statistical property than the Pearson's r. We obtain the Fisher's Z and sampling variance of each study with the `escalc` function of the `metafor` package that calculates and add them to the dataframe. Note that the effec-size and sampling variance are indicated by `yi` and `vi`, the standard notations used in `metafor` when using the `escalc` function. 
+ 
 
 ```{r, message=FALSE, warning=FALSE}
 library(metafor)
@@ -126,14 +143,14 @@ dat_yld3 <- escalc(measure = "ZCOR", ri = estimate, ni = n, data = dat_yld3)
 
 #### Random-effects model
 
-Fit a [random-effects model](http://www.metafor-project.org/doku.php/tips:rma.uni_vs_rma.mv) to estimate overal Fisher's Z with a maximum likelihood estimation for the amount of heterogeneity. Note that the effec-size and sampling variance are denoted by `yi` and `vi` (the standard notations used in `metafor`).
+A [random-effects model](http://www.metafor-project.org/doku.php/tips:rma.uni_vs_rma.mv) was fitted to these data using a maximum likelihood estimator for the amount of heterogeneity. 
 
 ```{r, message=FALSE, warning=FALSE}
 ma_cor_yld <- rma.uni(yi, vi, method = "ML", data = dat_yld3)
 summary(ma_cor_yld)
 ```
 
-We need  back-transformed z to obtain r
+Back-transform z to obtain overall mean r.
 
 ```{r, message=FALSE, warning=FALSE}
 pred_r <- predict(ma_cor_yld, transf = transf.ztor)
@@ -143,70 +160,71 @@ pred_r
 
 #### Mixed-effects model
 
-A mixed-effect model was fitted to the data by the inclusion of moderator variables. Heterogeneity among the true effect-sizes was evaluated based on significance of the Cochran Q test and the I2 index that measures the extent of heterogeneity of the true effect-sizes.
+The random-effects model fitted previously assumes that the heterogeneity in the true correlation coefficients (Fisher's Z) is purely random. However, there may be differences among the individual effects that (at least in part) are related to study-specific variables. These variable can be treated as "moderators". In this study, the moderators considered were: year, region, elevation, or disease and yield levels in the untreated check, indicative of the disease pressure.
+
+A mixed-effect model then includes one or more moderator variables in the model, which are treated as fixed effects. The goal is to examine to what extent the moderators included in the model influence the size of the average true effect. The heterogeneity among the true effect-sizes was evaluated based on significance of the Cochran Q test and the *I*<sup>2</sup> index that measures the extent of heterogeneity of the true effect-sizes.
 
 ```{r}
 # season
 ma_cor_yld_year <- rma(yi, vi, sei="",  mods = ~season, method = "ML",   data = dat_yld3)
 
 ## region
-ma_cor_yld_region <- rma(yi, vi, mods = ~region, 
-                         method = "ML",data = dat_yld3)
+ma_cor_yld_region <- rma(yi, vi, mods = ~region, method = "ML",data = dat_yld3)
 
 ## elevation as continuous
-ma_cor_yld_elevation <- rma(yi, vi, mods = ~elevation, 
-                            method = "ML", data = dat_yld3)
+ma_cor_yld_elevation <- rma(yi, vi, mods = ~elevation, method = "ML", data = dat_yld3)
 
 ## elevation as category
-ma_cor_yld_elevation2 <- rma(yi, vi, mods = ~elevation_class, 
-                             method = "ML", data = dat_yld3)
+ma_cor_yld_elevation2 <- rma(yi, vi, mods = ~elevation_class, method = "ML", data = dat_yld3)
 
 ## incidence in the check as continuous
-ma_cor_yld_inc <- rma(yi, vi, mods = ~inc_check, 
-                      method = "ML", data = dat_yld3)
+ma_cor_yld_inc <- rma(yi, vi, mods = ~inc_check, method = "ML", data = dat_yld3)
 
 ## incidence in the check as categorical
-ma_cor_yld_inc2 <- rma(yi, vi, mods = ~inc_class, 
-                       method = "ML", data = dat_yld3)
+ma_cor_yld_inc2 <- rma(yi, vi, mods = ~inc_class, method = "ML", data = dat_yld3)
 
 ## yield in the check as continuous
-ma_cor_yld_yld <- rma(yi, vi, mods = ~yld_check, 
-                      method = "ML", data = dat_yld3)
+ma_cor_yld_yld <- rma(yi, vi, mods = ~yld_check, method = "ML", data = dat_yld3)
 
 ## yield in the check as categorical
-ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, 
-                       method = "ML", data = dat_yld3)
+ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_yld3)
 
 
 ```
 
-Table. Q-value and significant and explained variability by the inclusion of moderators
+Table. Significance of the test of whether the moderator accounts for any of the heterogeneity in these data  explained variability by the inclusion of moderators and the amount of variance (heterogeneity) accounted for by the moderator (R2 statistics).
+```{r}
 
-| Moderator |  Q-test |  P-value | I<sup>2</sup>|
-| ----------| -------| ----------|----------|
-| Season | `r ma_cor_yld_year$QEp` | `r ma_cor_yld_year$QMp`| `r ma_cor_yld_year$I2`|
-| Region | `r ma_cor_yld_region$QEp` | `r ma_cor_yld_region$QMp`| `r ma_cor_yld_region$I2`|
-| Elevation categorical | `r ma_cor_yld_elevation$QEp` | `r ma_cor_yld_elevation$QMp`| `r ma_cor_yld_elevation$I2`|
-| Elevation continuous | `r ma_cor_yld_elevation2$QEp` | `r ma_cor_yld_elevation2$QMp`|`r ma_cor_yld_elevation2$I2`|
-| Incidence categorical | `r ma_cor_yld_inc$QEp` | `r ma_cor_yld_inc$QMp`|`r ma_cor_yld_inc$I2`|
-| Yield continous | `r ma_cor_yld_yld$QEp` | `r ma_cor_yld_yld$QMp`|`r ma_cor_yld_yld$I2`|
-| Yield categorical | `r ma_cor_yld_yld2$QEp` | `r ma_cor_yld_yld2$QMp`|`r ma_cor_yld_yld2$I2`|
+table_yld <- frame_data(
+~"Moderator", ~"Test of moderator", ~"R2",
+"Season", ma_cor_yld_year$QMp,  ma_cor_yld_year$R2,
+"Region",  ma_cor_yld_region$QMp, ma_cor_yld_region$R2,
+"Elevation categorical", ma_cor_yld_elevation$QMp,  ma_cor_yld_elevation$R2,
+"Elevation continuous", ma_cor_yld_elevation2$QMp, ma_cor_yld_elevation2$R2,
+"Incidence categorical", ma_cor_yld_inc$QMp, ma_cor_yld_inc$R,
+"Yield continous",  ma_cor_yld_yld$QMp, ma_cor_yld_yld$R2,
+"Yield categorical", ma_cor_yld_yld2$QMp, ma_cor_yld_yld2$R2
+)
+
+kable(table_yld)
+```
+
 
 
 #### Forest plot 
 
-Visualize the correlation coefficients by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-coefficients model.
+Visualize the observed Pearson's r by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-effects model.
 
 ```{r}
-
+library(ggplot2)
 dat_yld3 %>% 
   ggplot(aes(x = study, y = estimate)) + 
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color="grey50") + 
   geom_point(aes(size = 1/vi), shape = 15, color="grey70") +
-  geom_hline(yintercept =pred_r$pred, size=0.75)+
-  geom_hline(yintercept = c(pred_r$cr.lb, pred_r$cr.ub), linetype="dashed")+ 
+ # geom_hline(yintercept = ma_cor_yld$pred, size=0.75)+
+  #geom_hline(yintercept = c(ma_cor_yld$cr.lb, ma_cor_yld$cr.ub), linetype="dashed")+ 
   coord_flip()+
-  scale_y_reverse(limits = c(0.65,-1.2))+
+ # scale_y_reverse(limits = c(0.65,-1.2))+
   labs(x = "Slope") + 
   theme_minimal() + 
   labs(size = "1/vi", 
@@ -239,7 +257,7 @@ dat_scl3 <- full_join(cor_scl_inc, dat_scl2,
 # create variable with the number of data points in the correlation
 ```
 
-Obtain Fisher's Z
+Obtain Fisher's Z.
 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -254,9 +272,10 @@ Fit the random-coefficients model.
 ```{r, message=FALSE, warning=FALSE}
 ma_cor_scl <- rma.uni(yi, vi, method = "ML", data = dat_scl3)
 summary(ma_cor_scl)
+
 ```
 
-Back-transformed Z to obtain r
+Back-transform Z to r.
 
 ```{r, message=FALSE, warning=FALSE}
 pred_r_scl <- predict(ma_cor_scl, transf = transf.ztor)
@@ -270,51 +289,49 @@ Same as previously described.
 
 ```{r}
 # season
-ma_cor_scl_year <- rma(yi, vi, mods = ~season, 
-                       method = "ML",   data = dat_scl3)
+ma_cor_scl_year <- rma(yi, vi, mods = ~season, method = "ML",   data = dat_scl3)
 
 ## region
-ma_cor_scl_region <- rma(yi, vi, mods = ~region, 
-                         method = "ML",data = dat_scl3)
+ma_cor_scl_region <- rma(yi, vi, mods = ~region, method = "ML",data = dat_scl3)
 
 ## elevation as continuous
-ma_cor_scl_elevation <- rma(yi, vi, mods = ~elevation, 
-                            method = "ML", data = dat_scl3)
+ma_cor_scl_elevation <- rma(yi, vi, mods = ~elevation, method = "ML", data = dat_scl3)
 
 ## elevation as category
-ma_cor_scl_elevation2 <- rma(yi, vi, mods = ~elevation_class, 
-                             method = "ML", data = dat_scl3)
+ma_cor_scl_elevation2 <- rma(yi, vi, mods = ~elevation_class, method = "ML", data = dat_scl3)
 
 ## incidence in the check as continuous
-ma_cor_scl_inc <- rma(yi, vi, mods = ~inc_check, 
-                      method = "ML", data = dat_scl3)
+ma_cor_scl_inc <- rma(yi, vi, mods = ~inc_check, method = "ML", data = dat_scl3)
 
 ## incidence in the check as categorical
-ma_cor_scl_inc2 <- rma(yi, vi, mods = ~inc_class, 
-                       method = "ML", data = dat_scl3)
+ma_cor_scl_inc2 <- rma(yi, vi, mods = ~inc_class, method = "ML", data = dat_scl3)
 
 ## yield in the check as continuous
-ma_cor_scl_yld <- rma(yi, vi, mods = ~yld_check, 
-                      method = "ML", data = dat_scl3)
+ma_cor_scl_yld <- rma(yi, vi, mods = ~yld_check, method = "ML", data = dat_scl3)
 
 ## yield in the check as categorical
-ma_cor_scl_yld2 <- rma(yi, vi, mods = ~yld_class, 
-                       method = "ML", data = dat_scl3)
+ma_cor_scl_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_scl3)
 
 
 ```
 
-Table. Q-value and its significant and the amount of variability explained in the full model with the inclusion of each moderator
+Table. Significance of the test of whether the moderator accounts for any of the heterogeneity in these data  explained variability by the inclusion of moderators and the amount of variance (heterogeneity) accounted for by the moderator (R2 statistics).
 
-| Moderator |  Q-test |  P-value | I<sup>2</sup>|
-| ----------| -------| ----------|----------|
-| Season | `r ma_cor_scl_year$QEp` | `r ma_cor_scl_year$QMp`| `r ma_cor_scl_year$I2`|
-| Region | `r ma_cor_scl_region$QEp` | `r ma_cor_scl_region$QMp`| `r ma_cor_scl_region$I2`|
-| Elevation categorical | `r ma_cor_scl_elevation$QEp` | `r ma_cor_scl_elevation$QMp`|`r ma_cor_scl_elevation$I2`|
-| Elevation continuous | `r ma_cor_scl_elevation2$QEp` | `r ma_cor_scl_elevation2$QMp`|`r ma_cor_scl_elevation2$I2`|
-| Incidence categorical | `r ma_cor_scl_inc$QEp` | `r ma_cor_scl_inc$QMp`|`r ma_cor_scl_inc$I2`|
-| Yield continous | `r ma_cor_scl_yld$QEp` | `r ma_cor_scl_yld$QMp`| `r ma_cor_scl_yld$I2`|
-| Yield categorical | `r ma_cor_scl_yld2$QEp` | `r ma_cor_scl_yld2$QMp`|`r ma_cor_scl_yld2$I2`|
+```{r}
+
+table_scl <- frame_data(
+~"Moderator", ~"Test of moderator", ~"R2",
+"Season", ma_cor_scl_year$QMp,  ma_cor_scl_year$R2,
+"Region",  ma_cor_scl_region$QMp, ma_cor_scl_region$R2,
+"Elevation categorical", ma_cor_scl_elevation$QMp,  ma_cor_scl_elevation$R2,
+"Elevation continuous", ma_cor_scl_elevation2$QMp, ma_cor_scl_elevation2$R2,
+"Incidence categorical", ma_cor_scl_inc$QMp, ma_cor_scl_inc$R,
+"Yield continous",  ma_cor_scl_yld$QMp, ma_cor_scl_yld$R2,
+"Yield categorical", ma_cor_scl_yld2$QMp, ma_cor_scl_yld2$R2
+)
+
+kable(table_scl)
+```
 
 
 #### Forest plot
@@ -328,8 +345,8 @@ dat_scl3 %>%
   ggplot(aes(x = study, y = estimate)) + 
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color="grey50") + 
   geom_point(aes(size = 1/vi), shape = 15, color="grey70") +
-  geom_hline(yintercept =pred_r_scl$pred, size=0.75)+
-  geom_hline(yintercept = c(pred_r_scl$cr.lb, pred_r_scl$cr.ub), linetype="dashed")+ 
+  #geom_hline(yintercept = ma_cor_scl$pred, size=0.75)+
+  #geom_hline(yintercept = c(ma_cor_scl$ci.lb, ma_cor_scl$ci.ub), linetype="dashed")+ 
   coord_flip()+
   labs(x = "Slope") + 
   theme_minimal() + 
