@@ -36,7 +36,7 @@ citation <- cr_cn(dois = "10.1111/ppa.12590", format = "text", style = "apa")
 
 
 <img style="float: right; margin:30px" src="report-white-mold.jpg">
-In the article, two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). These relationships were summarized using data from 35 uniform fungicide trials conducted across several locations and four years in the main Brazilian soybean areas. The original data was extracted from tables, one for each trial, publicly available in a scientific summary report. [Download the report in Portuguese language](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf)
+In the article, two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). These relationships were summarized using data from 35 uniform fungicide trials conducted across several locations and four years in the main Brazilian soybean areas. The original data was extracted from tables, one for each trial, publicly available in a scientific summary report. [Download the report in Portuguese language](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) (figure at the right).
 
 The two relationships were summarized using [meta-analytic approaches](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069). The three effect-sizes used in this study were: 1) Fisher's Z (from Pearson's r); 2) intercept and 3) slopes of regression model (a random-coefficients models) fitted to the data of 35 and 29 studies the inc-yld and inc-scl relationships, respectively. The analysis followed the procedures used in previous studies in plant pathology. However, for summarizing slopes and intercepts, we used a mixed, also know as random-coeficients, model as described in Madden and Paul (2009) using SAS. Here, we conducted the analysis in `R` with the `lmer` package as described in this tutorial [two-stage model and mixed model using R](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). In our preliminary analysis (not shown here), the two-stage and random-coefficients approaches produced very similar results.
 
@@ -131,6 +131,7 @@ Let's extract the first row of each study from the `dat_yld` dataframe and then 
 dat_yld2 <- filter(dat_yld, row_number() == 1)
 dat_yld3 <- full_join(cor_yld_inc, dat_yld2, by = "study") %>% 
            mutate(n = parameter + 2)  
+
 ```
 
 The Fisher's Z was used as effect-size because of its better statistical property than the Pearson's r. We obtain the Fisher's Z and sampling variance of each study with the `escalc` function of the `metafor` package that calculates and add them to the dataframe. Note that the effec-size and sampling variance are indicated by `yi` and `vi`, the standard notations used in `metafor` when using the `escalc` function. 
@@ -139,6 +140,8 @@ The Fisher's Z was used as effect-size because of its better statistical propert
 ```{r, message=FALSE, warning=FALSE}
 library(metafor)
 dat_yld3 <- escalc(measure = "ZCOR", ri = estimate, ni = n, data = dat_yld3)
+
+head(dat_yld3)
 ```
 
 #### Random-effects model
@@ -192,7 +195,7 @@ ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_yld3
 
 ```
 
-Table. Significance of the test of whether the moderator accounts for any of the heterogeneity in these data  explained variability by the inclusion of moderators and the amount of variance (heterogeneity) accounted for by the moderator (R2 statistics).
+
 ```{r}
 
 table_yld <- frame_data(
@@ -206,7 +209,7 @@ table_yld <- frame_data(
 "Yield categorical", ma_cor_yld_yld2$QMp, ma_cor_yld_yld2$R2
 )
 
-kable(table_yld)
+kable(table_yld, format = "pandoc", caption = "P-value for the test for the effect of moderator  and the amount of variance (heterogeneity) accounted for by the moderator (R2 statistics)")
 ```
 
 
@@ -216,18 +219,20 @@ kable(table_yld)
 Visualize the observed Pearson's r by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-effects model.
 
 ```{r}
+wi    <- 1/sqrt(dat_yld3$vi)
+size  <- 0.5 + 3.0 * (wi - min(wi))/(max(wi) - min(wi))
 library(ggplot2)
 dat_yld3 %>% 
   ggplot(aes(x = study, y = estimate)) + 
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color="grey50") + 
-  geom_point(aes(size = 1/vi), shape = 15, color="grey70") +
- # geom_hline(yintercept = ma_cor_yld$pred, size=0.75)+
-  #geom_hline(yintercept = c(ma_cor_yld$cr.lb, ma_cor_yld$cr.ub), linetype="dashed")+ 
+  geom_point(aes(size = size), shape = 15, color="grey70") +
+ geom_hline(yintercept = pred_r$pred, size=0.75)+
+ geom_hline(yintercept = c(pred_r$cr.lb, pred_r$cr.ub), linetype="dashed")+ 
   coord_flip()+
- # scale_y_reverse(limits = c(0.65,-1.2))+
+  scale_y_reverse(limits = c(0.65,-1.2))+
   labs(x = "Slope") + 
   theme_minimal() + 
-  labs(size = "1/vi", 
+  labs(size = "study weight", 
        title = "White mold vs. soybean yield", 
         y = "Estimated r", x = "Study number (reordered)")
 ```
@@ -315,7 +320,7 @@ ma_cor_scl_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_scl3
 
 ```
 
-Table. Significance of the test of whether the moderator accounts for any of the heterogeneity in these data  explained variability by the inclusion of moderators and the amount of variance (heterogeneity) accounted for by the moderator (R2 statistics).
+
 
 ```{r}
 
@@ -330,7 +335,7 @@ table_scl <- frame_data(
 "Yield categorical", ma_cor_scl_yld2$QMp, ma_cor_scl_yld2$R2
 )
 
-kable(table_scl)
+kable(table_yld, format = "markdown", caption = "P-value of the test for the effect of the moderator and the amount of variance (heterogeneity) accounted for by the moderator (R2 statistics)")
 ```
 
 
@@ -340,17 +345,18 @@ Visualize the correlation coefficients by study and the mean r (solid line) and 
 
 
 ```{r}
-
+wi    <- 1/sqrt(dat_scl3$vi)
+size  <- 0.5 + 3.0 * (wi - min(wi))/(max(wi) - min(wi))
 dat_scl3 %>% 
   ggplot(aes(x = study, y = estimate)) + 
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), color="grey50") + 
-  geom_point(aes(size = 1/vi), shape = 15, color="grey70") +
-  #geom_hline(yintercept = ma_cor_scl$pred, size=0.75)+
-  #geom_hline(yintercept = c(ma_cor_scl$ci.lb, ma_cor_scl$ci.ub), linetype="dashed")+ 
+  geom_point(aes(size = size), shape = 15, color="grey70") +
+  geom_hline(yintercept = pred_r_scl$pred, size=0.75)+
+  geom_hline(yintercept = c(pred_r_scl$ci.lb, pred_r_scl$ci.ub), linetype="dashed")+ 
   coord_flip()+
-  labs(x = "Slope") + 
-  theme_minimal() + 
-  labs(size = "1/vi", 
+  labs(x = "Slope")+ 
+  theme_minimal()+ 
+  labs(size = "study weight", 
        title = "White mold incidence vs. sclerotia weight", 
         y = "Estimated r", x = "Study number (reordered)")
 ```
