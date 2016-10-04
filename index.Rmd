@@ -4,7 +4,7 @@ title: "Reproducible report: <br />  Meta-analysis of soybean white mold epidemi
 output:
   html_document:
     css: my-style.css
-    theme: flatly
+    theme: sandstone
     toc: true
     depth: 4
     toc_float:
@@ -367,3 +367,6 @@ dat_scl3 %>%
 
 `r cr_cn(dois = "10.1094/PHYTO-99-7-0850", format = "text", style = "apa")`
 
+```{r session_info, include=TRUE, echo=TRUE}
+devtools::session_info() 
+```
