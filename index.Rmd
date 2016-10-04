@@ -4,7 +4,7 @@ title: "Reproducible report: <br />  Meta-analysis of soybean white mold epidemi
 output:
   html_document:
     css: my-style.css
-    theme: sandstone
+    theme: flatly
     toc: true
     depth: 4
     toc_float:
@@ -23,7 +23,7 @@ options(width=200)
 ```
 
 
-# Introduction
+# About the paper
 
 This report describes all the steps for reproducing the analysis conducted in the following article:
 
@@ -36,28 +36,29 @@ citation <- cr_cn(dois = "10.1111/ppa.12590", format = "text", style = "apa")
 
 
 <img style="float: right; margin:30px" src="report-white-mold.jpg">
-In the article, two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). These relationships were summarized using data from 35 uniform fungicide trials conducted across several locations and four years in the main Brazilian soybean areas. The original data was extracted from tables, one for each trial, publicly available in a scientific summary report. [Download the report in Portuguese language](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) (figure at the right).
+In the article ([download the pre-print version](Lehner-etal-white-mold-PP.pdf)), two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). The data were collected at 35 studies was available in tables, one for each study, published in a scientific summary report. [Download the report in Portuguese language](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) (figure at the right).
 
-The two relationships were summarized using [meta-analytic approaches](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069). The three effect-sizes used in this study were: 1) Fisher's Z (from Pearson's r); 2) intercept and 3) slopes of regression model (a random-coefficients models) fitted to the data of 35 and 29 studies the inc-yld and inc-scl relationships, respectively. The analysis followed the procedures used in previous studies in plant pathology. However, for summarizing slopes and intercepts, we used a mixed, also know as random-coeficients, model as described in Madden and Paul (2009) using SAS. Here, we conducted the analysis in `R` with the `lmer` package as described in this tutorial [two-stage model and mixed model using R](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). In our preliminary analysis (not shown here), the two-stage and random-coefficients approaches produced very similar results.
+The two relationships were summarized using [meta-analytic approaches](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069) base don three effect-sizes: 1) Fisher's Z (from transforming Pearson's r); 2) intercept and 3) slopes of a random-coefficients models fitted to the data.
 
-# About this report
+The analysis followed the procedures used in previous studies in plant pathology. However, for summarizing the slopes and intercepts, we used a mixed, also know as random-coeficients, model as described in Madden and Paul (2009) who used SAS.Here, we conducted the analysis in `R` with the `lmer` package as described in this tutorial [two-stage model and mixed model using R](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). 
 
-- The data and code of this document are available for download at this [GitHub repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). 
+# About the report
 
-- Make sure to install and load the R packages necessary for the analysis. As much as possible I use the pipe operator `%>%`  of the [`magrittr` package](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html), which transform nested function calls into a simple pipeline of operations that's easier to write and understand. 
+My goal was to demonstrate, using R programming, each step of the analysis, from data preparation to a pre-print manuscript, that may be reproducible either by myself or other people interested in the same topic. Instead of giving away all the data and my (messy!) original code, it took me some time after the paper was published to prepare this report where I detail all the steps, from data preparation to reporting satistical results in text, figures and tables. The data, code, pre-print and all figures and supplementary materials were also made available this [GitHub repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). 
 
-- The plots used in this report were made using both the base R graphics and ggplot2. Most of them are simple versions quick visualization, not actually formatted for final publishing.
-
-
-```{r, message=FALSE, warning=FALSE}
-library(tidyverse); library(broom); library(tidyr); library(cowplot); library(tibble); library(knitr)
-
-```
+The report is the html output of an [R Markdown](http://rmarkdown.rstudio.com) file prepared with the RStudio IDE for R. As much as possible I used the pipe operator `%>%`  of the [`magrittr` package](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html), which, to me, makes the code easier to write and understand. The plots were prepared using both the base R graphics and ggplot2, whichever was more convenient. Most of them are simple versions for a quick visualization, not actually formatted for final publishing. 
 
 
 # Data import 
+first, load the necessary packages: 
 
-The data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Load the tidy data and group by study. 
+```{r, message=FALSE, warning=FALSE}
+library(tidyverse); library(broom); library(tidyr);
+library(cowplot); library(tibble); library(knitr)
+
+```
+
+The raw data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Load the tidy data and group by study. 
 
 ```{r, message=FALSE, warning=FALSE}
 dat_yld <- read_csv("dat-white-mold-br.csv") %>% 
@@ -82,9 +83,9 @@ hist(dat_yld$scl, main = "Sclerotia weight")
 
 ```
 
-Let's now visualize the two relationships of interest, conditioned to study, and add a regression line (extended to the full range) for each study with variable number of observation (pairs). 
+Let's now visualize the two relationships of interest, conditioned to study, and add a regression line (extended to the full range) for each study with variable number of pair of observation. 
 
-Note that soybean yield decreases with the increase of white mold incidence and sclerotia weight increase, with the increase of disease incidence. The variability in the incidence in a single study was due to differences in fungicide efficacy.
+Note that soybean yield decreases with the increase of white mold incidence. On the other hand, sclerotia weight increase with the increase of disease incidence. The variability in the incidence in a single study was due to differences in fungicide efficacy. Note that 35 and 29 studies were avaible for the inc-yld and inc-scl, respectively (6 plots are empty for inc-scl because data was not available).
 
 ```{r, fig.height=7, fig.width=10, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -113,7 +114,7 @@ ggplot(dat_yld, aes(inc, scl))+
 
 ## Incidence-yield 
 
-The procedures described in details below are the same for the two studied relationships. The two main meta-analyses summarize the Fisher's Z used as the effect size for the study of the strenght of the association between white mold incidence and soybean yield, and the regression coefficients estimated by a random-coefficients modelling framework to determine functional relationship between the two variables.
+The procedures described below are the same for the two studied relationships. For each one, we summarized the Fisher's Z as the effect size for the study of the strenght of the association between white mold incidence and soybean yield, and the regression coefficients estimated by a random-coefficients modelling framework to determine the functional relationship between the two variables.
 
 ### Correlation coefficient
 
@@ -125,7 +126,7 @@ cor_yld_inc <- dat_yld %>%
   do(tidy(cor.test(.$inc, .$yld)))
 ```
 
-Let's extract the first row of each study from the `dat_yld` dataframe and then combine with the new `cor_yld_inc` dataframe that contains the correlation statistics. Also dd a new column (n) for the number of data points per study using the `mutate` function.
+Let's extract the first row of each study from the `dat_yld` dataframe and then combine with the new `cor_yld_inc` dataframe that contains the correlation statistics. We will add a new column (n) for the number of data points per study using the `mutate` function.
 
 ```{r}
 dat_yld2 <- filter(dat_yld, row_number() == 1)
@@ -134,7 +135,7 @@ dat_yld3 <- full_join(cor_yld_inc, dat_yld2, by = "study") %>%
 
 ```
 
-The Fisher's Z was used as effect-size because of its better statistical property than the Pearson's r. We obtain the Fisher's Z and sampling variance of each study with the `escalc` function of the `metafor` package that calculates and add them to the dataframe. Note that the effec-size and sampling variance are indicated by `yi` and `vi`, the standard notations used in `metafor` when using the `escalc` function. 
+The Fisher's Z was used as effect-size because of its better statistical property than the Pearson's r. We obtain the Fisher's Z and sampling variance of each study with the `escalc` function of the `metafor` package that calculates and adds them to the dataframe. Note that the effec-size and sampling variance are indicated by `yi` and `vi`, the standard notations used in `metafor` when using the `escalc` function. Let's see how the dataframe looks like.
  
 
 ```{r, message=FALSE, warning=FALSE}
@@ -146,7 +147,7 @@ head(dat_yld3)
 
 #### Random-effects model
 
-A [random-effects model](http://www.metafor-project.org/doku.php/tips:rma.uni_vs_rma.mv) was fitted to these data using a maximum likelihood estimator for the amount of heterogeneity. 
+A [random-effects](http://www.metafor-project.org/doku.php/tips:rma.uni_vs_rma.mv) meta-analytiic model was fitted to these data using a maximum likelihood estimator for the amount of heterogeneity. 
 
 ```{r, message=FALSE, warning=FALSE}
 ma_cor_yld <- rma.uni(yi, vi, method = "ML", data = dat_yld3)
@@ -163,9 +164,9 @@ pred_r
 
 #### Mixed-effects model
 
-The random-effects model fitted previously assumes that the heterogeneity in the true correlation coefficients (Fisher's Z) is purely random. However, there may be differences among the individual effects that (at least in part) are related to study-specific variables. These variable can be treated as "moderators". In this study, the moderators considered were: year, region, elevation, or disease and yield levels in the untreated check, indicative of the disease pressure.
+The random-effects model fitted previously assumes that the heterogeneity in the true correlation coefficients (Fisher's Z) is purely random. However, there may be differences among the individual effects that are (at least in part) related to study-specific variables. These variable can be treated as "moderators" in the model. We considered here: year, region, elevation, or disease and yield levels in the untreated check, as indicative of the disease pressure.
 
-A mixed-effect model then includes one or more moderator variables in the model, which are treated as fixed effects. The goal is to examine to what extent the moderators included in the model influence the size of the average true effect. The heterogeneity among the true effect-sizes was evaluated based on significance of the Cochran Q test and the *I*<sup>2</sup> index that measures the extent of heterogeneity of the true effect-sizes.
+Our mixed-effect model tests one moderator variable, each at a time, as a fixed effects. The goal was is examine to what extent the moderators included in the model influence the size of the average true effect. The heterogeneity among the true effect-sizes is evaluated based on significance of the Cochran Q test and the *I*<sup>2</sup> index that measures the extent of heterogeneity of the true effect-sizes.
 
 ```{r}
 # season
@@ -195,6 +196,7 @@ ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_yld3
 
 ```
 
+Let's check the table and see which variables significantly affected the heterogeneity and how much the variance was accounted for when including the moderator variable. It sees we have only one variable with a marginally significant P-value.
 
 ```{r}
 
@@ -216,7 +218,7 @@ kable(table_yld, format = "pandoc", caption = "P-value for the test for the effe
 
 #### Forest plot 
 
-Visualize the observed Pearson's r by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-effects model.
+Lest's visualize the observed Pearson's r by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-effects model. This plots was not include in the paper, but is interesting to check on the variability of the correlation coefficients and the estimated mean r from back-transforming Z (solid line).
 
 ```{r}
 wi    <- 1/sqrt(dat_yld3$vi)
@@ -366,6 +368,8 @@ dat_scl3 %>%
 `r cr_cn(dois = "10.1094/PHYTO-06-14-0157-R", format = "text", style = "apa")`
 
 `r cr_cn(dois = "10.1094/PHYTO-99-7-0850", format = "text", style = "apa")`
+
+# Session info
 
 ```{r session_info, include=TRUE, echo=TRUE}
 devtools::session_info() 
