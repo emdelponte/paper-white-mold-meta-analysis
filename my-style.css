@@ -12,8 +12,8 @@ img {
 }
 
 h1,h2,h3,h4 {
-margin-bottom: 30px;
-margin-top: 20px;
+margin-bottom: 20px;
+margin-top: 15px;
 padding-top: 5px;
 font-family: 'Oswald', sans-serif;
 display: inline-block;
@@ -23,7 +23,7 @@ width:100%
 h1.title {
 font-family: 'Oswald', sans-serif;
 font-size: 32px;
-line-height: 120%
+line-height: 100%
 }
 
 pre code, pre, code {
