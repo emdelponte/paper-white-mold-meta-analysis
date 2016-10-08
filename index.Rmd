@@ -1,13 +1,15 @@
 ---
-title: 'Reproducible report: Meta-analysis of soybean white mold epidemic data'
+title: 'Reproducible report: <br/> Meta-analysis of relationships in soybean white mold epidemic data'
+date: "`r Sys.Date()`"
 output:
   html_document:
     css: my-style.css
-    depth: 4
+    depth: 5
+    number_sections: no
     theme: flatly
     toc: yes
     toc_float:
-      collapsed: no
+      collapsed: yes
       smooth_scroll: yes
   pdf_document:
     toc: yes
@@ -24,9 +26,9 @@ options(width=200)
 ```
 
 
-# About the paper
+# The article
 
-This report describes all the steps for reproducing the analysis conducted in the following article:
+This report describes all steps for reproducing the analysis of data from multiple field trial, using meta-analytic approaches, conducted in an article published in Plant Pathology:
 
 ```{r, message=FALSE, warning=FALSE, include=FALSE}
 library(rcrossref)
@@ -35,13 +37,15 @@ citation <- cr_cn(dois = "10.1111/ppa.12590", format = "text", style = "apa")
 
 > `r citation`
 
-In the [article](Lehner-etal-white-mold-PP.pdf), two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). The data were collected at 35 studies was available in tables, one for each study, published in a scientific summary report. [Download](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) the report (PT language). The two relationships were summarized using [meta-analytic](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069) models using three effect-sizes: 1) Fisher's Z (from transforming Pearson's r); 2) intercept and 3) slopes of a random-coefficients models fitted to the data. We followed the procedures  used in previous studies in plant pathology. However, for summarizing the slopes and intercepts, we used a mixed, also know as random-coeficients, model as described in Madden and Paul (2009) who used SAS.Here, we conducted the analysis in `R` with the `lmer` package as described in this [tutorial](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). 
+In the [article](Lehner-etal-white-mold-PP.pdf), two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, g/ha). The data were obtained from a scientific [report](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) (PT language) on fungicide efficacy evaluated in 35 trials conducted across several locations and 4-year period in Brazil.  The data was organized in tables reporting the mean values of the three variables of interest, one table for each trial.
 
-# About the report
+The two relationships were summarized using [meta-analytic](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069) models using three effect-sizes: 1) Fisher's Z (from transforming Pearson's r); 2) intercept and 3) slopes of a random-coefficients models fitted to the data. We followed the procedures detailed in previous studies in plant pathology. For summarizing the correlation coefficients, we calculate Fisher's Z and fitted random-effects and mixed-effects model, the latter for testing the effect of moderator variables. For summarizing the slopes and intercepts, we used a mixed, or a random-coeficients, model as described in Madden and Paul (2009) who used SAS. Here, we demonstrate the analysis in `R` using the `lmer` package as described in this [tutorial](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). Similar to the tutorial, the estimates were similar between the two-stage and the mixed model approach, and so we decided to use the latter approach.
 
-My goal was to demonstrate, using R programming, each step of the analysis, from data preparation to presentation of results, which can be reproducible either by myself or other people interested in the same topic. Instead of giving away all the data and my (messy!) original code, it took me some time after the paper was published to prepare this report where I detail all the steps, from data preparation to reporting satistical results in text, figures and tables. The data, code, pre-print and all figures and supplementary materials were also made available at this GitHub [repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). 
+# This report
 
-The report is the html output of an [R Markdown](http://rmarkdown.rstudio.com) file prepared with the RStudio IDE for R. As much as possible I used the pipe operator `%>%`  of the [`magrittr` package](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html), which, to me, makes the code easier to write and understand. The plots were prepared using both the base R graphics and ggplot2, whichever was more convenient. Most of them are simple versions for a quick visualization, not actually formatted for final publishing. 
+My goal is to demonstrate, using R programming, each step of the analyses, from data preparation to presentation of results, which can be reproduced either by myself or other people interested in the same topic. Instead of giving away all the data and my (messy!) original code, I thougt that investing time to prepare this report can contribute to popularize the use of meta-analytic approaches in plant pathology. The data, codes, pre-print version of the article and supplementary materials were also made available at this GitHub [repository](https://github.com/emdelponte/paper-white-mold-meta-analysis). 
+
+The report is the html output of an [R Markdown](http://rmarkdown.rstudio.com) file prepared with the RStudio IDE for R. As much as possible I used the pipe operator `%>%`  of the [`magrittr` package](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html), which really makes the code easier to write and understand. The plots were prepared using both the base R graphics and ggplot2, whichever was more convenient. Most of them are simple versions for a quick visualization, not actually formatted for final publishing.
 
 
 # Data import 
@@ -49,15 +53,20 @@ First, we need to load the packages.
 
 ```{r, message=FALSE, warning=FALSE}
 library(tidyverse); library(broom); library(tidyr);
-library(cowplot); library(tibble); library(knitr)
+library(cowplot); library(tibble); library(knitr); library(nlme)
 
 ```
 
-The raw data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Let's no load the data and group by study. 
+The raw data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Let's no load the data and group by study for dataframes separated for each relationship.
 
 ```{r, message=FALSE, warning=FALSE}
-dat_yld <- read_csv("dat-white-mold-br.csv") %>% 
-  group_by(study)
+# inc-yld
+dat_yld <- read_csv("dat-white-mold-br.csv") %>%   
+ group_by(study)
+# inc-scl
+dat_scl <- read_csv("dat-white-mold-br.csv") %>%
+na.omit(dat_scl)%>% # some trials did not have sclerotia data, and we omit them here
+ group_by(study)
 ```
 
 See the structure of the dataset and all variables types (scroll the content to the left). The full dataset in `csv` format can be downloaded here: [dat-white-mold-br.csv](dat-white-mold-br.csv) 
@@ -66,9 +75,12 @@ See the structure of the dataset and all variables types (scroll the content to 
 dat_yld
 ```
 
+
 # Data visualization
 
-The histograms below summarize the distribution of the three variables that will be used to calculate the three effect-sizes for the meta-analysis. We can see that the disease-related variables (inc and scl) are skewed to the left, while yield data are more normally distributed.
+## Raw data
+
+The histograms below summarize the distribution of the three variables used to calculate the three effect-sizes for the meta-analysis. We can see that the two disease-related variables (inc and scl) are skewed to the left and yield data are more normally distributed.
 
 ```{r, fig.height=3, fig.width=12, message=FALSE, warning=FALSE}
 par(mfrow= c(1,3))
@@ -78,7 +90,9 @@ hist(dat_yld$scl, main = "Sclerotia weight")
 
 ```
 
-Let's now visualize the two relationships of interest, conditioned to study, and add a regression line (extended to the full range) for each study with variable number of pair of observation. Note that soybean yield decreases with the increase of white mold incidence. On the other hand, sclerotia weight increase with the increase of disease incidence. The variability in the incidence in a single study was due to differences in fungicide efficacy. Note that 35 and 29 studies were avaible for the inc-yld and inc-scl, respectively (6 plots are empty for inc-scl because data was not available).
+## Individual regressions
+
+Let's now visualize the two relationships of interest, conditioned to study, and add a regression line (extended to the full range) for each study with variable number of pair of observation. Note that soybean yield decreases with the increase of white mold incidence. On the other hand, sclerotia weight increase with the increase of disease incidence. The variability in the incidence in a single study was due to differences in fungicide efficacy. Note that 35 and 29 studies were available for the inc-yld and inc-scl, respectively (6 plots are empty for inc-scl because data was not available).
 
 ```{r, fig.height=7, fig.width=10, message=FALSE, warning=FALSE}
 library(ggplot2)
@@ -103,13 +117,71 @@ ggplot(dat_yld, aes(inc, scl))+
 ```
 
 
+
+#### Coefficients
+
+
+```{r, fig.height=3}
+ dat_yld %>%
+  do(tidy(lm(.$yld ~ .$inc), conf.int=TRUE)) %>% 
+ ggplot(aes(estimate))+
+ geom_histogram(bins = 10, fill = "grey90",  color="grey50")+
+ theme_minimal()+
+ facet_wrap(~term, scales = "free_x")
+  
+```
+
+#### Fitted lines
+
+Let's see all the regression lines in the same plot.
+
+
+```{r}
+ggplot(dat_yld, aes(inc, yld))+
+      geom_smooth(method="lm", fullrange=TRUE, se=F, size=0.7, color="grey80", aes(group = factor(study)))+
+      geom_point(alpha = 0.5, shape = 1)+
+      ylab("Yield (kg/ha)")+
+      xlab("White mold incidence (%)")+
+      theme_minimal()
+```
+
+### Coefficients
+
+
+```{r, message=FALSE, warning=FALSE}
+dat_scl %>% 
+ do(tidy(lm(.$scl ~ .$inc), conf.int=TRUE)) %>%
+ ggplot(aes(estimate))+
+ geom_histogram(bins = 10, fill = "grey90",  color="grey50")+
+ theme_minimal()+
+ facet_wrap(~term, scales = "free_x")
+
+```
+
+#### Fitted lines
+
+Regression plot.
+
+```{r, message=FALSE, warning=FALSE}
+ggplot(dat_scl, aes(inc, scl))+
+      geom_smooth(method="lm", fullrange=TRUE, se=F, size=0.7, color="grey80", aes(group = factor(study)))+
+      geom_point(alpha = 0.5, shape = 1)+
+      ylab("Sclerotia weight (g/ha)")+
+      xlab("White mold incidence (%)")+
+      ylim(0,10000)+
+      theme_minimal()
+```
+
+
+
 # Meta-analytic models 
 
-## Incidence-yield 
+The procedures described below are exactly the same for the two studied relationships. For each one, we firstly summarize the Fisher's Z as the effect size for the study of the strenght of the association between white mold incidence and soybean yield. Secondly, we will fit a regression model to individual studies. Finally, we will fit random-coefficients model to estimate the coefficientes.
 
-The procedures described below are the same for the two studied relationships. For each one, we summarized the Fisher's Z as the effect size for the study of the strenght of the association between white mold incidence and soybean yield, and the regression coefficients estimated by a random-coefficients modelling framework to determine the functional relationship between the two variables.
+## Correlation coefficient
 
-### Correlation coefficient
+### Incidence-yield 
+
 
 Here I use the `dplyr::do` and `tidyr::broom` functions to extract the correlation statistics from each of the studies and assign them to the `cor_yld_inc` dataframe.
 
@@ -138,7 +210,7 @@ dat_yld3 <- escalc(measure = "ZCOR", ri = estimate, ni = n, data = dat_yld3)
 head(dat_yld3)
 ```
 
-#### Random-effects model
+#### Overall Fisher's Z
 
 A [random-effects](http://www.metafor-project.org/doku.php/tips:rma.uni_vs_rma.mv) meta-analytiic model was fitted to these data using a maximum likelihood estimator for the amount of heterogeneity. 
 
@@ -155,11 +227,11 @@ pred_r
 ```
 
 
-#### Mixed-effects model
+#### Moderators effect
 
 The random-effects model fitted previously assumes that the heterogeneity in the true correlation coefficients (Fisher's Z) is purely random. However, there may be differences among the individual effects that are (at least in part) related to study-specific variables. These variable can be treated as "moderators" in the model. We considered here: year, region, elevation, or disease and yield levels in the untreated check, as indicative of the disease pressure.
 
-Our mixed-effect model tests one moderator variable, each at a time, as a fixed effects. The goal was is examine to what extent the moderators included in the model influence the size of the average true effect. The heterogeneity among the true effect-sizes is evaluated based on significance of the Cochran Q test and the *I*<sup>2</sup> index that measures the extent of heterogeneity of the true effect-sizes.
+The mixed-effect models test one moderator variable, each at a time, as a fixed effects. The goal was is examine to what extent the moderators included in the model influence the size of the average true effect. The heterogeneity among the true effect-sizes is evaluated based on significance of the Cochran Q test and the *I*<sup>2</sup> index that measures the extent of heterogeneity of the true effect-sizes.
 
 ```{r}
 # season
@@ -189,7 +261,7 @@ ma_cor_yld_yld2 <- rma(yi, vi, mods = ~yld_class, method = "ML", data = dat_yld3
 
 ```
 
-Let's check the table and see which variables significantly affected the heterogeneity and how much the variance was accounted for when including the moderator variable. It sees we have only one variable with a marginally significant P-value.
+Let's check which variables significantly affected the heterogeneity and how much the variance was accounted for when including the moderator variable. It seems we have only one variable with a marginally significant P-value.
 
 ```{r}
 
@@ -211,7 +283,7 @@ kable(table_yld, format = "pandoc", caption = "P-value for the test for the effe
 
 #### Forest plot 
 
-Lest's visualize the observed Pearson's r by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-effects model. This plots was not include in the paper, but is interesting to check on the variability of the correlation coefficients and the estimated mean r from back-transforming Z (solid line).
+Let's visualize the Pearson's r by study and the mean r (solid line) and confidence intervals (dashed lines) from back-transforming Z estimated by the random-effects model. This plots was not include in the paper, but is interesting to check the heterogeneity of the correlation coefficients and the estimated mean r from back-transforming Z (solid line).
 
 ```{r}
 wi    <- 1/sqrt(dat_yld3$vi)
@@ -231,12 +303,6 @@ dat_yld3 %>%
        title = "White mold vs. soybean yield", 
         y = "Estimated r", x = "Study number (reordered)")
 ```
-
-
-## Incidence-sclerotia 
-
-
-### Correlation coefficient
 
 Follow the same procedures as described above.
 
@@ -265,7 +331,9 @@ library(metafor)
 dat_scl3 <- escalc(measure = "ZCOR", ri = estimate, ni = n, data = dat_scl3)
 ```
 
-#### Random-effects model
+### Incidence-sclerotia
+
+#### Overall Fisher's Z
 
 Fit the random-coefficients model.
 
@@ -283,7 +351,7 @@ pred_r_scl
 ```
 
 
-#### Mixed-effects model
+#### Moderators effect
 
 Same as previously described.
 
@@ -356,14 +424,207 @@ dat_scl3 %>%
         y = "Estimated r", x = "Study number (reordered)")
 ```
 
+
+## Mixed effects model
+
+### Incidence yield
+
+We will use the `lmer` function of the `lme4` to fit three different mixed models: random intercepts and slopes, random intercepts only and random slopes. We followed the procedures described in this [tutorial](http://www.metafor-project.org/doku.php/tips:two_stage_analysis) that compares the mixed model with the two-stage modeling approach.
+
+#### Compare models
+
+```{r, message=FALSE, warning=FALSE}
+library(lme4)
+# random intercept and slopes
+mix_yld1  <- lmer(yld ~ inc + (inc |study), data=dat_yld, REML=F)
+
+# random slopes
+mix_yld2 <- lmer(yld ~ inc + (1 | inc), data=dat_yld, REML=F)
+
+# random intercepts
+mix_yld3 <- lmer(yld ~ inc + (1 |study), data=dat_yld, REML=F)
+
+```
+
+The AIC of the random intercepts and slopes model is the lowest.
+
+```{r, message=FALSE, warning=FALSE}
+AIC(mix_yld1, mix_yld2, mix_yld3)
+```
+
+#### Summary
+
+```{r}
+summary (mix_yld1)
+```
+
+
+#### Goodness of fit
+Let's get the p-value for the significance of the slope and also the pseudo R2 (conditional) of the model.
+
+```{r, message=FALSE, warning=FALSE}
+# Get the p-values of the significance of the slope
+library(car)
+Anova(mix_yld1)
+
+library(piecewiseSEM)
+sem.model.fits(mix_yld1)
+```
+
+
+```{r}
+# plot the pearson's model residuals
+plot(mix_yld1,type=c("p","smooth"))
+
+# plot the qq-plot and qq-line
+library(lattice)
+qqmath(mix_yld1)
+
+# plot of the fitted and observations
+plot(fitted(mix_yld1)~dat_yld$yld)
+```
+
+#### Variance-covariance
+
+We then proceed with the full model and calculate the variance and covariance.
+
+```{r}
+vc <- VarCorr(mix_yld1)
+## variance only
+as.data.frame(vc, order="lower.tri")
+
+```
+
+#### Predictions
+
+We now extract the BLUEs and calculate the interdecile range.
+
+```{r}
+# extract the blups
+cc2 <- coef(mix_yld1)$study
+cc2 %>% 
+ gather("coef", "value") %>% 
+ ggplot(aes(x=value))+
+ theme_minimal()+
+       geom_histogram(bins = 10, fill = "grey80", color = "grey50")+
+       facet_wrap(~coef, scales = "free_x")
+
+
+```
+
+
+Calculate the interdecile range for the BLUEs of the slopes and intercepts
+
+```{r, message=FALSE, warning=FALSE}
+
+# Intercept
+dec90 <- quantile(cc2$`(Intercept)`,probs=c(.9))
+dec10 <- quantile(cc2$`(Intercept)`,probs=c(.1))
+dec90-dec10
+
+# Slopes
+dec90 <- quantile(cc2$inc,probs=c(.9))
+dec10 <- quantile(cc2$inc,probs=c(.1))
+dec90-dec10
+```
+
+#### Effect of moderators
+
+Forthcoming!
+
+
+### Incidence-sclerotia
+
+We repeat the same procedure as described above.
+
+#### Compare models
+
+```{r, message=FALSE, warning=FALSE}
+library(lme4)
+# random intercept and slopes
+mix_scl1  <- lmer(scl ~ inc + (inc |study), data=dat_scl, REML=F)
+mix_scl2 <- lmer(scl ~ inc + (1 | inc), data=dat_scl, REML=F)
+mix_scl3 <- lmer(scl ~ inc + (1 |study), data=dat_scl, REML=F)
+
+```
+
+
+
+The AIC  shows the random intercepts and slopes model with the lowest value.
+
+```{r, message=FALSE, warning=FALSE}
+AIC(mix_scl1, mix_scl2, mix_scl3)
+```
+
+
+#### Summary
+
+```{r}
+summary (mix_scl1)
+```
+
+#### Goodness of fit
+
+Let's get the p-value for the significance of the slope and also the pseudo R2 (conditional) of the model.
+
+```{r, message=FALSE, warning=FALSE}
+# Get the p-values of the significance of the slope
+library(car)
+Anova(mix_scl1)
+
+library(piecewiseSEM)
+sem.model.fits(mix_scl1)
+```
+
+Check the goodness of fit of the model.
+
+```{r}
+plot(mix_scl1,type=c("p","smooth"))
+library(lattice)
+qqmath(mix_scl1)
+plot(fitted(mix_scl1)~dat_scl$scl)
+```
+
+#### Variance-covariance
+We then proceed with the full model and calculate the variance and covariance.
+
+```{r}
+vc_scl <- VarCorr(mix_scl1)
+## variance only
+as.data.frame(vc_scl, order="lower.tri")
+
+```
+
+#### Predictions
+
+Obtaint the BLUEs and calculate the interdecile range.
+
+```{r}
+# extract the blups
+cc2_scl <- coef(mix_scl1)$study
+cc2_scl %>% 
+ gather("coef", "value") %>% 
+ ggplot(aes(x=value))+
+ theme_minimal()+
+       geom_histogram(bins = 10, fill = "grey80", color = "grey50")+
+       facet_wrap(~coef, scales = "free_x")
+
+
+```
+
+
+#### Effect of moderators
+
+Forthcoming!
+
+
+
+
+
+
 # References
 
 `r cr_cn(dois = "10.1094/PHYTO-06-14-0157-R", format = "text", style = "apa")`
 
 `r cr_cn(dois = "10.1094/PHYTO-99-7-0850", format = "text", style = "apa")`
 
-# Session info
-
-```{r session_info, include=TRUE, echo=TRUE}
-devtools::session_info() 
-```
