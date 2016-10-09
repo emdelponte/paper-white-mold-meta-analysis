@@ -180,7 +180,7 @@ ggplot(dat_scl, aes(inc, scl))+
 
 # Meta-analytic models 
 
-The procedures described below are exactly the same for the two studied relationships. For each one, we firstly summarize the Fisher's Z as the effect size for the study of the strenght of the association between white mold incidence and soybean yield. Secondly, we will fit a regression model to individual studies. Finally, we will fit random-coefficients model to estimate the coefficientes.
+The procedures described below are exactly the same for the two studied relationships. For each one, we firstly summarize the Fisher's Z as the effect size for the study of the strenght of the association between white mold incidence and soybean yield. Secondly, we will fit a regression model to individual studies. Finally, we will fit random-coefficients model to estimate the coefficients.
 
 ## Correlation coefficient
 
