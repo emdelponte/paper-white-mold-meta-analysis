@@ -37,11 +37,9 @@ citation <- cr_cn(dois = "10.1111/ppa.12590", format = "text", style = "apa")
 
 > `r citation`
 
-<<<<<<< HEAD
 In the [article](Lehner-etal-white-mold-PP.pdf), two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, kg). The data were collected at 35 studies was available in tables, one for each study, published in a scientific summary report. [Download](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) the report (PT language). The two relationships were summarized using [meta-analytic](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069) models using three effect-sizes: 1) Fisher's Z (from transforming Pearson's r); 2) intercept and 3) slopes of a random-coefficients models fitted to the data. We followed the procedures  used in previous studies in plant pathology. However, for summarizing the slopes and intercepts, we used a mixed, also know as random-coeficients, model as described in Madden and Paul (2009) who used SAS. Here, we conducted the analysis in `R` with the `lmer` package as described in this [tutorial](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). 
 =======
 In the [article](Lehner-etal-white-mold-PP.pdf), two relationships were studied: soybean white mold incidence (inc, %) and soybean yield (yld, kg/ha) and incidence and sclerotia weight (scl, g/ha). The data were obtained from a scientific [report](http://ainfo.cnptia.embrapa.br/digital/bitstream/item/101371/1/Ensaios-cooperativos-de-controle-quimico-de-mofo-branco-na-cultura-da-soja-safras-2009-a-2012.pdf) (PT language) on fungicide efficacy evaluated in 35 trials conducted across several locations and 4-year period in Brazil.  The data was organized in tables reporting the mean values of the three variables of interest, one table for each trial.
->>>>>>> gh-pages
 
 The two relationships were summarized using [meta-analytic](http://apsjournals.apsnet.org/doi/abs/10.1094/PHYTO-03-10-0069) models using three effect-sizes: 1) Fisher's Z (from transforming Pearson's r); 2) intercept and 3) slopes of a random-coefficients models fitted to the data. We followed the procedures detailed in previous studies in plant pathology. For summarizing the correlation coefficients, we calculate Fisher's Z and fitted random-effects and mixed-effects model, the latter for testing the effect of moderator variables. For summarizing the slopes and intercepts, we used a mixed, or a random-coeficients, model as described in Madden and Paul (2009) who used SAS. Here, we demonstrate the analysis in `R` using the `lmer` package as described in this [tutorial](http://www.metafor-project.org/doku.php/tips:two_stage_analysis). Similar to the tutorial, the estimates were similar between the two-stage and the mixed model approach, and so we decided to use the latter approach.
 
@@ -61,7 +59,7 @@ library(cowplot); library(tibble); library(knitr); library(nlme)
 
 ```
 
-The raw data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Let's no load the data and group by study for dataframes separated for each relationship.
+The raw data was organized in the long or [tidy format](http://garrettgman.github.io/tidying/) where each treatment (observation) in a fungicide trial (hereafter study) is placed in its row and each variable in its column. Let's now load the data and group by study for dataframes separated for each relationship.
 
 ```{r, message=FALSE, warning=FALSE}
 # inc-yld
