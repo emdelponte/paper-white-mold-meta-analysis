@@ -6,7 +6,7 @@ output:
     css: my-style.css
     depth: 5
     number_sections: no
-    theme: flatly
+    theme: default
     toc: yes
     toc_float:
       collapsed: yes
