@@ -1,7 +1,11 @@
 ---
-title: 'Reproducible report: <br/> Meta-analysis of relationships between white mold and soybean yield
-  '
+title: 'Reproducible report: <br/> Meta-analysis of relationships between white mold
+  and soybean yield '
 output:
+  word_document:
+    toc: yes
+  pdf_document:
+    toc: yes
   html_document:
     css: my-style.css
     depth: 5
@@ -11,11 +15,7 @@ output:
     toc_float:
       collapsed: yes
       smooth_scroll: yes
-  pdf_document:
-    toc: yes
-  word_document:
-    toc: yes
-date: "Created: 2016-10-01 <br/>Last update: `r Sys.Date()`"
+date: 'Created: 2016-10-01 <br/>Last update: `r Sys.Date()`'
 ---
 
 <link href="https://fonts.googleapis.com/css?family=Oswald" rel="stylesheet">
